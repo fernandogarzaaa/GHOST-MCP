@@ -25,6 +25,18 @@ def _check_ghostchimera() -> bool:
         return False
 
 
+def _check_server_available() -> bool:
+    """Return True when at least one MCP server backend is importable."""
+    if _check_ghostchimera():
+        return True
+    try:
+        from mcp.server.fastmcp import FastMCP  # noqa: F401
+
+        return True
+    except ImportError:
+        return False
+
+
 def run_serve(
     profile_dir: str | None = None,
     transport: str | None = None,
@@ -61,17 +73,14 @@ def run_serve(
     if port:
         cfg.mcp.port = port
 
-    # Check ghostchimera is available
-    if not _check_ghostchimera():
-        print_warning("ghostchimera[mcp] is not installed.")
+    # Check at least one server backend is available
+    if not _check_server_available():
+        print_warning("No MCP server backend is installed.")
         print()
-        print("  Ghost MCP requires ghostchimera to run the server:")
+        print("  Ghost MCP needs at least one of the following:")
         print()
-        print(f"  {color('pip install ghost-mcp[mcp]', Colors.CYAN)}")
-        print()
-        print("  For the full experience (local mini-model training):")
-        print()
-        print(f"  {color('pip install ghost-mcp[full]', Colors.CYAN)}")
+        print(f"  {color('pip install ghost-mcp[mcp]', Colors.CYAN)}    — standalone MCP server")
+        print(f"  {color('pip install ghost-mcp[full]', Colors.CYAN)}   — full ghost experience")
         print()
         sys.exit(1)
 
