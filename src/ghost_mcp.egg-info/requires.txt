@@ -1,0 +1,11 @@
+
+[dev]
+pytest>=8.0
+ruff>=0.5
+
+[full]
+ghostchimera[mcp,minimind]>=0.4.0
+
+[mcp]
+mcp>=1.0.0
+ghostchimera[mcp]>=0.4.0

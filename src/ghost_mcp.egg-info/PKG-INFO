@@ -1,0 +1,30 @@
+Metadata-Version: 2.4
+Name: ghost-mcp
+Version: 0.1.0
+Summary: Ghost Chimera as a Model Context Protocol server — hyper-compressed personal AI proxy for Claude, Codex, and other MCP-compatible platforms.
+Author: Fernando Garza
+License-Expression: MIT
+Keywords: mcp,agents,ghost,chimera,personal-ai,rag,proxy
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Environment :: Console
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Provides-Extra: full
+Requires-Dist: ghostchimera[mcp,minimind]>=0.4.0; extra == "full"
+Provides-Extra: mcp
+Requires-Dist: mcp>=1.0.0; extra == "mcp"
+Requires-Dist: ghostchimera[mcp]>=0.4.0; extra == "mcp"
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+Requires-Dist: ruff>=0.5; extra == "dev"
+Dynamic: license-file
+
+# GHOST-MCP
+A compressed version of ghost chimera suited for existing systems. MCP is treated as a sub-system plugin. 

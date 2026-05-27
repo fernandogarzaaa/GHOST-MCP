@@ -1,0 +1,2 @@
+[console_scripts]
+ghost-mcp = ghost_mcp.cli:main
