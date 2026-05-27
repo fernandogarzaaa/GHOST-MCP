@@ -283,7 +283,7 @@ def _step_permissions_and_transport(
     # ── Exclusion patterns ─────────────────────────────────────────────────────
     print()
     print_info("Sensitive files are skipped by default:")
-    sample = "  " + ",  ".join(DEFAULT_EXCLUDE_PATTERNS[:8]) + ",  …"
+    sample = "  " + ",  ".join(DEFAULT_EXCLUDE_PATTERNS[:8]) + ",  ..."
     print_info(sample)
     use_defaults = _prompt_yn(
         "\n  Use default exclusion patterns? (recommended)",
@@ -493,9 +493,7 @@ def run_wizard(profile_dir: str | None = None, yes: bool = False) -> None:
         return
 
     # ── Run steps ──────────────────────────────────────────────────────────────
-    resolved_profile = _step_profile_dir(existing)
-    if profile_dir:
-        resolved_profile = str(Path(profile_dir).expanduser().resolve())
+    resolved_profile = str(Path(profile_dir).expanduser().resolve()) if profile_dir else _step_profile_dir(existing)
 
     local_enabled, local_paths = _step_local_files(existing)
     browser_enabled, browser_targets = _step_browser_cache(existing)

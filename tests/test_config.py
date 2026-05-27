@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from ghost_mcp.config import DataSourceConfig, GhostMCPConfig, MCPConfig, PermissionsConfig
-from ghost_mcp.constants import DEFAULT_EXCLUDE_PATTERNS, VERSION
+from ghost_mcp.constants import DEFAULT_EXCLUDE_PATTERNS, DEFAULT_PROFILE_DIR, VERSION
 
 # ── DataSourceConfig ───────────────────────────────────────────────────────────
 
@@ -51,7 +51,7 @@ def test_mcp_defaults() -> None:
 def test_ghost_config_defaults() -> None:
     cfg = GhostMCPConfig()
     assert cfg.version == VERSION
-    assert cfg.profile_dir.endswith(".ghost") or cfg.profile_dir == str(Path.home() / ".ghost")
+    assert cfg.profile_dir == str(DEFAULT_PROFILE_DIR)
     assert isinstance(cfg.data_sources, DataSourceConfig)
     assert isinstance(cfg.permissions, PermissionsConfig)
     assert isinstance(cfg.mcp, MCPConfig)
