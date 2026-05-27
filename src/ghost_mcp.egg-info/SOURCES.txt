@@ -4,6 +4,7 @@ pyproject.toml
 src/ghost_mcp/__init__.py
 src/ghost_mcp/config.py
 src/ghost_mcp/constants.py
+src/ghost_mcp/server.py
 src/ghost_mcp.egg-info/PKG-INFO
 src/ghost_mcp.egg-info/SOURCES.txt
 src/ghost_mcp.egg-info/dependency_links.txt
@@ -15,4 +16,10 @@ src/ghost_mcp/cli/colors.py
 src/ghost_mcp/cli/serve.py
 src/ghost_mcp/cli/status.py
 src/ghost_mcp/cli/wizard.py
+tests/test_cli.py
+tests/test_colors.py
 tests/test_config.py
+tests/test_serve.py
+tests/test_server.py
+tests/test_status.py
+tests/test_wizard.py
