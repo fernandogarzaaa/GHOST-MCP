@@ -2,9 +2,10 @@
 
 Subcommands
 -----------
-ghost-mcp init    Run the onboarding wizard (configure data sources & guardrails)
-ghost-mcp status  Display the current configuration
-ghost-mcp serve   Start the Ghost MCP server
+ghost-mcp init            Run the onboarding wizard (configure data sources & guardrails)
+ghost-mcp status          Display the current configuration
+ghost-mcp serve           Start the Ghost MCP server
+ghost-mcp install-claude  Add Ghost MCP to Claude Desktop's config file
 """
 
 from __future__ import annotations
@@ -39,6 +40,17 @@ def _cmd_serve(args: argparse.Namespace) -> None:
         profile_dir=args.profile_dir or None,
         transport=args.transport or None,
         port=args.port or None,
+    )
+
+
+def _cmd_install_claude(args: argparse.Namespace) -> None:
+    from ghost_mcp.cli.install import run_install_claude
+
+    run_install_claude(
+        config_path=args.config_path or None,
+        transport=args.transport,
+        port=args.port or None,
+        dry_run=args.dry_run,
     )
 
 
@@ -134,6 +146,45 @@ def _build_parser() -> argparse.ArgumentParser:
         help="override SSE port from config",
     )
     p_serve.set_defaults(func=_cmd_serve)
+
+    # ── install-claude ────────────────────────────────────────────────────────
+    p_install = subs.add_parser(
+        "install-claude",
+        help="add Ghost MCP to Claude Desktop's config",
+        description=(
+            "Automatically write the Ghost MCP server entry into Claude Desktop's\n"
+            "claude_desktop_config.json so Ghost is available as an MCP tool.\n\n"
+            "The config file is created if it does not exist.  Re-running is safe:\n"
+            "existing entries are updated in place, everything else is preserved."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    p_install.add_argument(
+        "--config-path",
+        metavar="PATH",
+        default=None,
+        help="override the Claude Desktop config path (auto-detected by default)",
+    )
+    p_install.add_argument(
+        "--transport",
+        choices=["stdio", "sse"],
+        default="stdio",
+        help="MCP transport to configure (default: stdio)",
+    )
+    p_install.add_argument(
+        "--port",
+        type=int,
+        default=None,
+        metavar="PORT",
+        help="SSE port (only used with --transport sse)",
+    )
+    p_install.add_argument(
+        "--dry-run",
+        action="store_true",
+        default=False,
+        help="show what would change without writing anything",
+    )
+    p_install.set_defaults(func=_cmd_install_claude)
 
     return parser
 
