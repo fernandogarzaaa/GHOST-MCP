@@ -1,0 +1,28 @@
+{
+  "name": "ghost-mcp",
+  "version": "0.1.0",
+  "description": "GHOST-Chimera as a Claude plugin: local-first agent orchestration, Trust Runtime, MiniMind memory, and PR/production-gap automation exposed as MCP tools and slash commands.",
+  "author": "Fernando Garza",
+  "license": "MIT",
+  "homepage": "https://github.com/fernandogarzaaa/GHOST-MCP",
+  "mcpServers": {
+    "ghost": {
+      "command": "python",
+      "args": ["-m", "ghost_mcp"]
+    }
+  },
+  "skills": ["skills/ghost"],
+  "commands": "commands/",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/session-start.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ghost-mcp"
+version = "0.1.0"
+description = "GHOST-Chimera as a Claude plugin — local-first agent orchestration via MCP."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+authors = [{ name = "Fernando Garza" }]
+keywords = ["mcp", "claude", "ghost-chimera", "agents", "plugin"]
+dependencies = [
+    "mcp>=1.0.0",
+    "ghostchimera>=0.4.0",
+]
+
+[project.optional-dependencies]
+compress = ["chimeralang-mcp>=0.7.0"]
+
+[project.scripts]
+ghost-mcp = "ghost_mcp.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ghost_mcp"]
