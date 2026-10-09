@@ -47,10 +47,23 @@ def _result_to_dict(result: Any) -> Any:
 
 
 def _shell(args: list[str]) -> dict[str, Any]:
-    proc = subprocess.run(
-        ["ghostchimera", *args],
-        capture_output=True, text=True, timeout=300,
-    )
+    try:
+        proc = subprocess.run(
+            ["ghostchimera", *args],
+            capture_output=True, text=True, timeout=300,
+        )
+    except FileNotFoundError:
+        return {
+            "exit_code": 127,
+            "stdout": "",
+            "stderr": "ghostchimera CLI not found on PATH; install it with `pip install ghostchimera`.",
+        }
+    except subprocess.TimeoutExpired:
+        return {
+            "exit_code": 124,
+            "stdout": "",
+            "stderr": "ghostchimera command timed out after 300s.",
+        }
     return {
         "exit_code": proc.returncode,
         "stdout": proc.stdout,
