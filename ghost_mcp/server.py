@@ -12,33 +12,51 @@ import json
 
 import mcp.types as types
 from mcp.server import Server
+from mcp.server.context import ServerRequestContext
 from mcp.server.stdio import stdio_server
 
 from ghost_mcp.tools import all_tools
 
-server: Server = Server("ghost-mcp")
 _TOOLS = {t.name: t for t in all_tools()}
 
 
-@server.list_tools()
-async def list_tools() -> list[types.Tool]:
-    return [
-        types.Tool(name=t.name, description=t.description, inputSchema=t.input_schema)
-        for t in _TOOLS.values()
-    ]
+async def _list_tools(
+    ctx: ServerRequestContext, params: types.PaginatedRequestParams | None
+) -> types.ListToolsResult:
+    return types.ListToolsResult(
+        tools=[
+            types.Tool(name=t.name, description=t.description, inputSchema=t.input_schema)
+            for t in _TOOLS.values()
+        ]
+    )
 
 
-@server.call_tool()
-async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
-    spec = _TOOLS.get(name)
+async def _call_tool(
+    ctx: ServerRequestContext, params: types.CallToolRequestParams
+) -> types.CallToolResult:
+    spec = _TOOLS.get(params.name)
     if spec is None:
-        return [types.TextContent(type="text", text=json.dumps({"error": f"unknown tool: {name}"}))]
+        return types.CallToolResult(
+            content=[
+                types.TextContent(
+                    type="text", text=json.dumps({"error": f"unknown tool: {params.name}"})
+                )
+            ],
+            is_error=True,
+        )
     try:
-        result = spec.handler(arguments or {})
+        result = spec.handler(params.arguments or {})
     except Exception as exc:
         result = {"error": f"{type(exc).__name__}: {exc}"}
     text = result if isinstance(result, str) else json.dumps(result, default=str)
-    return [types.TextContent(type="text", text=text)]
+    return types.CallToolResult(content=[types.TextContent(type="text", text=text)])
+
+
+server: Server = Server(
+    "ghost-mcp",
+    on_list_tools=_list_tools,
+    on_call_tool=_call_tool,
+)
 
 
 async def _run() -> None:
