@@ -17,5 +17,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - ghostchimera dependency now accepts the published 0.4.0b0 pre-release (install was unsatisfiable)
-- mcp capped below 2.0, whose API removed the server decorators this package uses
+- mcp requirement moved to >=2.3.0,<3 (the 2.x server API this package uses; the old <2 cap no longer applies)
 - CLI-backed tools return a clear error instead of crashing when the ghostchimera CLI is missing or times out

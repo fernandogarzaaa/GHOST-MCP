@@ -56,7 +56,7 @@ Same code, two surfaces. The full GHOST-Chimera platform (docker, console, SaaS 
 
 - Python 3.11+
 - `ghostchimera>=0.4.0` (pulled automatically)
-- Optional: `chimeralang-mcp>=0.7.0` for runtime compression (`pip install ghost-mcp[compress]`)
+- Optional: `chimeralang-mcp>=0.8.3` for runtime compression (`pip install ghost-mcp[compress]`)
 
 ## Smoke test
 
