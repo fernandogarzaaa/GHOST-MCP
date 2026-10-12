@@ -177,3 +177,39 @@ def test_real_chimeralang_compression_path():
     out = asyncio.run(inside_loop())
     assert isinstance(out, str), "compression must actually run inside a loop"
     assert len(out) < len(json.dumps(_BIG))
+
+
+def test_threshold_boundary_and_log_hint_window():
+    calls: list = []
+    fake = _fake_call_tool({"optimised_text": "SHORT"}, calls)
+    just_under = "a" * 799
+    exactly = "a" * 800
+    assert asyncio.run(maybe_compress_async(just_under, enabled=True, call_tool=fake)) is just_under
+    assert asyncio.run(maybe_compress_async(exactly, enabled=True, call_tool=fake)) == "SHORT"
+    # Log hints are only looked for in the first 2000 characters.
+    late_hint = "a" * 2000 + "ERROR"
+    near_hint = "a" * 1995 + "ERROR"
+    asyncio.run(maybe_compress_async(late_hint, enabled=True, call_tool=fake))
+    asyncio.run(maybe_compress_async(near_hint, enabled=True, call_tool=fake))
+    assert [c[0] for c in calls[1:]] == ["chimera_optimize", "chimera_log_compress"]
+
+
+def test_missing_chimeralang_or_empty_content_returns_payload(monkeypatch):
+    import builtins
+
+    real_import = builtins.__import__
+
+    def no_chimeralang(name, *a, **k):
+        if name.startswith("chimeralang_mcp"):
+            raise ImportError(name)
+        return real_import(name, *a, **k)
+
+    monkeypatch.setattr(builtins, "__import__", no_chimeralang)
+    assert compress_mod._default_call_tool() is None
+    assert asyncio.run(maybe_compress_async(_BIG, enabled=True)) is _BIG
+    monkeypatch.setattr(builtins, "__import__", real_import)
+
+    async def no_content(name, arguments):
+        return _pytypes.SimpleNamespace(content=[])
+
+    assert asyncio.run(maybe_compress_async(_BIG, enabled=True, call_tool=no_content)) is _BIG
