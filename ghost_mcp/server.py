@@ -45,7 +45,10 @@ async def _call_tool(
             is_error=True,
         )
     try:
-        result = spec.handler(params.arguments or {})
+        # Handlers are synchronous (GhostClient calls, subprocesses). Run them
+        # in a worker thread so they don't block the stdio event loop; this
+        # also lets maybe_compress run its own loop there (see compress.py).
+        result = await asyncio.to_thread(spec.handler, params.arguments or {})
     except Exception as exc:
         result = {"error": f"{type(exc).__name__}: {exc}"}
     text = result if isinstance(result, str) else json.dumps(result, default=str)
