@@ -8,9 +8,14 @@
 # In Claude Code
 /plugin install fernandogarzaaa/GHOST-MCP
 
-# Or pip install for any MCP client
-pip install ghost-mcp
+# Or install from GitHub for any MCP client
+pip install "git+https://github.com/fernandogarzaaa/GHOST-MCP.git"
 ```
+
+> **Do not run `pip install ghost-mcp` from PyPI.** That name belongs to an unrelated
+> third-party package (a Ghost CMS MCP server). This project is not published on PyPI yet;
+> install from GitHub as above. When it is published it will use a different
+> distribution name (candidates: `ghostchimera-mcp`, `ghost-chimera-mcp`).
 
 The plugin manifest at `.claude-plugin/plugin.json` registers:
 - **18 MCP tools** bridging into `ghostchimera.sdk.GhostClient` and the `ghostchimera` CLI
@@ -55,8 +60,8 @@ Same code, two surfaces. The full GHOST-Chimera platform (docker, console, SaaS 
 ## Requirements
 
 - Python 3.11+
-- `ghostchimera>=0.4.0` (pulled automatically)
-- Optional: `chimeralang-mcp>=0.8.3` for runtime compression (`pip install ghost-mcp[compress]`)
+- `ghostchimera>=0.4.0b0` (pulled automatically; 0.4.0b0 is the current PyPI release)
+- Optional: `chimeralang-mcp>=0.8.3` for runtime compression (`pip install "ghost-mcp[compress] @ git+https://github.com/fernandogarzaaa/GHOST-MCP.git"`)
 
 ## Smoke test
 
