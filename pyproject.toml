@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ghost-mcp"
-version = "0.1.0"
+version = "0.1.1"
 description = "GHOST-Chimera as a Claude plugin — local-first agent orchestration via MCP."
 readme = "README.md"
 license = { text = "MIT" }

@@ -213,3 +213,82 @@ def test_missing_chimeralang_or_empty_content_returns_payload(monkeypatch):
         return _pytypes.SimpleNamespace(content=[])
 
     assert asyncio.run(maybe_compress_async(_BIG, enabled=True, call_tool=no_content)) is _BIG
+
+
+# --- error reporting + args coercion (Oct 2026) -------------------------------
+
+
+def _call(name, arguments):
+    from ghost_mcp import server as server_mod
+
+    params = _pytypes.SimpleNamespace(name=name, arguments=arguments)
+    return asyncio.run(server_mod._call_tool(None, params))
+
+
+def test_handler_exception_is_flagged_as_error(monkeypatch):
+    def boom(args):
+        raise RuntimeError("ghost exploded")
+
+    from ghost_mcp import server as server_mod
+
+    monkeypatch.setattr(server_mod._TOOLS["ghost_doctor"], "handler", boom)
+    res = _call("ghost_doctor", {})
+    assert res.is_error is True
+    assert json.loads(res.content[0].text) == {"error": "RuntimeError: ghost exploded"}
+
+
+def test_missing_required_argument_is_a_clear_error(monkeypatch):
+    # ghost_search requires "query"; the SDK search must never be reached.
+    client = _pytypes.SimpleNamespace(search=lambda *a, **k: pytest.fail("search called"))
+    monkeypatch.setattr(tools_mod, "_get_client", lambda: client)
+    res = _call("ghost_search", {})
+    assert res.is_error is True
+    assert json.loads(res.content[0].text) == {"error": "missing required argument: query"}
+
+
+def test_success_is_not_flagged_as_error(monkeypatch):
+    monkeypatch.setattr(tools_mod, "_shell", lambda a: {"exit_code": 0, "stdout": "ok", "stderr": ""})
+    res = _call("ghost_doctor", {})
+    assert res.is_error is False
+    assert json.loads(res.content[0].text)["stdout"] == "ok"
+
+
+def test_string_args_are_one_argument_not_characters(monkeypatch):
+    seen = []
+    monkeypatch.setattr(tools_mod, "_shell", lambda a: seen.append(a) or {"exit_code": 0})
+    tools_mod._ghost_models({"args": "list"})
+    tools_mod._ghost_trust({"action": "runs", "args": "--json"})
+    tools_mod._ghost_eval({"args": ["compare", 3]})
+    tools_mod._ghost_doctor({"args": None})
+    assert seen == [
+        ["model", "list"],
+        ["trust", "runs", "--json"],
+        ["trust", "eval", "status", "compare", "3"],
+        ["doctor"],
+    ]
+
+
+def test_non_list_args_rejected_with_error_result():
+    with pytest.raises(ValueError):
+        tools_mod._argv({"args": {"a": 1}})
+    res = _call("ghost_doctor", {"args": {"a": 1}})
+    assert res.is_error is True
+    assert "must be a list" in res.content[0].text
+
+
+def test_shell_strips_ansi_colour_codes(monkeypatch):
+    captured = {}
+
+    def fake_run(cmd, **kw):
+        captured.update(kw)
+        return _pytypes.SimpleNamespace(
+            returncode=0,
+            stdout="\x1b[1m\x1b[96m  == Doctor ==\x1b[0m\n  \x1b[92m[OK] Python\x1b[0m\n",
+            stderr="\x1b]8;;http://x\x07link\x1b]8;;\x07 \x1b[93mwarn\x1b[0m",
+        )
+
+    monkeypatch.setattr(tools_mod.subprocess, "run", fake_run)
+    out = tools_mod._shell(["doctor"])
+    assert out == {"exit_code": 0, "stdout": "  == Doctor ==\n  [OK] Python\n", "stderr": "link warn"}
+    assert captured["env"]["NO_COLOR"] == "1"
+    assert tools_mod._strip_ansi(None) == ""
