@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-13
+
+### Fixed
+
+- Tool failures (handler exceptions, missing required arguments, bad `args`) now come back with MCP `isError: true` instead of looking like a successful result.
+- A missing required argument reports `missing required argument: <name>` instead of a bare `KeyError`.
+- CLI-backed tool output no longer carries ANSI colour codes (`\x1b[92m...`); `ghostchimera` colours output even into a pipe, so `_shell` strips escapes and sets `NO_COLOR=1`.
+- CLI-backed tools accept `"args": "list"` as one argument; before, a string was split into one argument per character.
+
 ## [0.1.0] - 2026-10-13
 
 First tagged release. Not published to PyPI (the `ghost-mcp` name there belongs to an unrelated project); install from this repository.
