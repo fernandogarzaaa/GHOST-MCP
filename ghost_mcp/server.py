@@ -44,15 +44,23 @@ async def _call_tool(
             ],
             is_error=True,
         )
+    is_error = False
     try:
         # Handlers are synchronous (GhostClient calls, subprocesses). Run them
         # in a worker thread so they don't block the stdio event loop; this
         # also lets maybe_compress run its own loop there (see compress.py).
         result = await asyncio.to_thread(spec.handler, params.arguments or {})
+    except KeyError as exc:
+        # A required argument was missing (handlers index args["..."]).
+        is_error = True
+        result = {"error": f"missing required argument: {exc.args[0]}"}
     except Exception as exc:
+        is_error = True
         result = {"error": f"{type(exc).__name__}: {exc}"}
     text = result if isinstance(result, str) else json.dumps(result, default=str)
-    return types.CallToolResult(content=[types.TextContent(type="text", text=text)])
+    return types.CallToolResult(
+        content=[types.TextContent(type="text", text=text)], is_error=is_error
+    )
 
 
 server: Server = Server(

@@ -12,6 +12,8 @@ chimeralang-mcp's compressor before return.
 from __future__ import annotations
 
 import json
+import os
+import re
 import subprocess
 from dataclasses import dataclass
 from typing import Any, Callable
@@ -46,11 +48,21 @@ def _result_to_dict(result: Any) -> Any:
     return result
 
 
+# CSI / OSC escape sequences. The ghostchimera CLI colours its output even when
+# stdout is a pipe; MCP clients (LLMs) would otherwise see raw "\x1b[92m" noise.
+_ANSI_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)")
+
+
+def _strip_ansi(text: str | None) -> str:
+    return _ANSI_RE.sub("", text or "")
+
+
 def _shell(args: list[str]) -> dict[str, Any]:
     try:
         proc = subprocess.run(
             ["ghostchimera", *args],
             capture_output=True, text=True, timeout=300,
+            env={**os.environ, "NO_COLOR": "1"},
         )
     except FileNotFoundError:
         return {
@@ -66,9 +78,26 @@ def _shell(args: list[str]) -> dict[str, Any]:
         }
     return {
         "exit_code": proc.returncode,
-        "stdout": proc.stdout,
-        "stderr": proc.stderr,
+        "stdout": _strip_ansi(proc.stdout),
+        "stderr": _strip_ansi(proc.stderr),
     }
+
+
+def _argv(args: dict[str, Any]) -> list[str]:
+    """Return the CLI passthrough list from ``args["args"]``.
+
+    MCP clients sometimes send ``"args": "list"`` instead of ``["list"]``;
+    splatting a string would pass one argument per character. Accept a single
+    string as one argument, coerce scalars to str, and reject anything else.
+    """
+    extra = args.get("args", [])
+    if extra is None:
+        return []
+    if isinstance(extra, str):
+        return [extra]
+    if not isinstance(extra, (list, tuple)):
+        raise ValueError("'args' must be a list of strings")
+    return [str(a) for a in extra]
 
 
 # --- SDK-backed tools ---------------------------------------------------
@@ -140,53 +169,53 @@ def _ghost_minimind(args: dict[str, Any]) -> Any:
 
 def _ghost_trust(args: dict[str, Any]) -> Any:
     sub = args.get("action", "status")
-    extra = args.get("args", [])
+    extra = _argv(args)
     out = _shell(["trust", sub, *extra])
     return maybe_compress(out, enabled=bool(args.get("compress")))
 
 
 def _ghost_review_pr(args: dict[str, Any]) -> Any:
-    extra = args.get("args", [])
+    extra = _argv(args)
     out = _shell(["review-pr", *extra])
     return maybe_compress(out, enabled=bool(args.get("compress")))
 
 
 def _ghost_gaps(args: dict[str, Any]) -> Any:
-    out = _shell(["production-gaps", *args.get("args", [])])
+    out = _shell(["production-gaps", *_argv(args)])
     return maybe_compress(out, enabled=bool(args.get("compress")))
 
 
 def _ghost_doctor(args: dict[str, Any]) -> Any:
-    return _shell(["doctor", *args.get("args", [])])
+    return _shell(["doctor", *_argv(args)])
 
 
 def _ghost_models(args: dict[str, Any]) -> Any:
-    return _shell(["model", *args.get("args", [])])
+    return _shell(["model", *_argv(args)])
 
 
 def _ghost_autonomy(args: dict[str, Any]) -> Any:
-    return _shell(["autonomy", *args.get("args", [])])
+    return _shell(["autonomy", *_argv(args)])
 
 
 def _ghost_console(args: dict[str, Any]) -> Any:
-    return _shell(["console", *args.get("args", [])])
+    return _shell(["console", *_argv(args)])
 
 
 def _ghost_capabilities(args: dict[str, Any]) -> Any:
-    return _shell(["capabilities", *args.get("args", [])])
+    return _shell(["capabilities", *_argv(args)])
 
 
 def _ghost_path(args: dict[str, Any]) -> Any:
-    return _shell(["path", *args.get("args", [])])
+    return _shell(["path", *_argv(args)])
 
 
 def _ghost_orders(args: dict[str, Any]) -> Any:
-    return _shell(["standing-orders", *args.get("args", [])])
+    return _shell(["standing-orders", *_argv(args)])
 
 
 def _ghost_eval(args: dict[str, Any]) -> Any:
     sub = args.get("action", "status")
-    return _shell(["trust", "eval", sub, *args.get("args", [])])
+    return _shell(["trust", "eval", sub, *_argv(args)])
 
 
 # --- Registry -----------------------------------------------------------
