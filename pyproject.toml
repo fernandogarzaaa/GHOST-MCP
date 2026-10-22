@@ -13,7 +13,7 @@ authors = [{ name = "Fernando Garza" }]
 keywords = ["mcp", "claude", "ghost-chimera", "agents", "plugin"]
 dependencies = [
     "mcp>=2.3.0,<3",
-    "ghostchimera>=0.4.0b0",
+    "ghostchimera>=0.4.0b2",
 ]
 
 [project.optional-dependencies]
