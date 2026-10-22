@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-compress = ["chimeralang-mcp>=0.8.3"]
+compress = ["chimeralang-mcp>=0.8.4"]
 dev = ["pytest>=9.1.1"]
 
 [project.scripts]
